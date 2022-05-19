@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 const { default: mongoose } = require("mongoose");
 const Client = require("../models/Client.model");
-const Service = require("../models/Service.model");
+const Car = require("../models/Car.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
 const User = require("../models/User.model");
@@ -10,28 +10,17 @@ const isClientCreator = require("../middleware/isClientCreator.middleware");
 
 //Create new client
 router.post('/clients', isAuthenticated, (req, res, next) => {
-    const {name, fiscalNumber, cars} = req.body;
+    const {name, fiscalNumber} = req.body;
 
     const newClient = {
+        creator: req.payload._id,
         name,
-        fiscalNumber,
-        cars: {
-            brand: cars.brand,
-            model: cars.model,
-            licensePlate: cars.licensePlate
-        }
+        fiscalNumber
     }
 
     Client.create(newClient)
         .then(response => {
-            const newClientId = response._id;
-            return User.findByIdAndUpdate(req.payload._id, {$push: {clients: newClientId}}, {new: true});
-        })
-        .then(userFromDb => {
-            return userFromDb.populate("clients");
-        })
-        .then(updatedUser => {
-            return res.status(201).json(updatedUser.clients);
+            return res.status(201).json(response);
         })
         .catch(error => {
             console.log("Error creating new client.", error);
@@ -46,11 +35,8 @@ router.post('/clients', isAuthenticated, (req, res, next) => {
 router.get('/clients', isAuthenticated, (req,res,next) => {
     const currentUser = req.payload._id
     
-    User.findById(currentUser)
-        .populate("clients")
-        .then(userFound => {
-            res.json(userFound.clients);
-        })
+    Client.find()
+        .then(response => res.json(response))
         .catch(error => {
             console.log("Error getting list of clients", error);
             res.status(500).json({
@@ -70,7 +56,7 @@ router.get('/clients/:clientId', isAuthenticated, isClientCreator, (req, res, ne
     }
 
     Client.findById(clientId)
-        .populate('services')
+        .populate('cars')
         .then(client => res.json(client))
         .catch(error => {
             console.log("Error getting the details of the client", error);
@@ -100,7 +86,7 @@ router.put('/clients/:clientId', isAuthenticated, isClientCreator,  (req,res,nex
     .catch(error => {
         console.log("Error updating client details", error);
         res.status(500).json({
-            message: "E",
+            message: "Error updating client details",
             error: error
         });
     })
@@ -113,13 +99,10 @@ router.delete('/clients/:clientId', isAuthenticated, isClientCreator, (req,res,n
 
     Client.findByIdAndRemove(clientId)
         .then(deletedClient => {
-            return Service.deleteMany({_id: {$in: deletedClient.services}});
+            return Car.deleteMany({_id: {$in: deletedClient.cars}});
         })
         .then(() => {
-            return User.findByIdAndUpdate(currentUserId, {$pull : {clients: clientId}})
-        })
-        .then(() => {
-            res.json({message: `Client and all associated services was removed successfully.`})
+            res.json({message: `Client and all associated cars and services were removed successfully.`})
         })
         .catch(error => {
             console.log("Error removing client.", error);
