@@ -21,11 +21,9 @@ const serviceSchema = new Schema({
     },
     serviceStatus: {
         type: String,
-        enum: [waiting, onShop, readyToDeliver, delivered],
+        enum: ["waiting", "onShop", "readyToDeliver", "delivered"],
         default: 'waiting'
     }
-
-
 });
 
 const Service = model("Service", serviceSchema);

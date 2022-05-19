@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const {isAuthenticated} = require("../middleware/jwt.middleware");
+const jwt = require("jsonwebtoken");
 
 // ℹ️ Handles password encryption
 const bcrypt = require("bcrypt");
@@ -17,12 +18,12 @@ router.get("/loggedin", (req, res) => {
 });
 
 router.post("/signup", (req, res) => {
-  const { username, password } = req.body;
+  const { email, username, password } = req.body;
 
-  if (!username) {
+  if (!email) {
     return res
       .status(400)
-      .json({ errorMessage: "Please provide your username." });
+      .json({ errorMessage: "Please provide your email." });
   }
 
   if (password.length < 8) {
@@ -33,11 +34,11 @@ router.post("/signup", (req, res) => {
 
 
   // Search the database for a user with the username submitted in the form
-  User.findOne({ username })
+  User.findOne({ email })
       .then((found) => {
     // If the user is found, send the message username is taken
     if (found) {
-      return res.status(400).json({ errorMessage: "Username already taken." });
+      return res.status(400).json({ errorMessage: "Email already in use." });
     }
 
     // if user is not found, create a new user - start with hashing the password
@@ -47,7 +48,7 @@ router.post("/signup", (req, res) => {
       .then((hashedPassword) => {
         // Create a user and save it in the database
         return User.create({
-          username,
+          email,
           password: hashedPassword,
         });
       })
@@ -62,7 +63,7 @@ router.post("/signup", (req, res) => {
         if (error.code === 11000) {
           return res.status(400).json({
             errorMessage:
-              "Username need to be unique. The username you chose is already in use.",
+              "Email needs to be unique. The email you chose is already in use.",
           });
         }
         return res.status(500).json({ errorMessage: error.message });
@@ -71,12 +72,13 @@ router.post("/signup", (req, res) => {
 });
 
 router.post("/login", (req, res, next) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  
 
-  if (!username) {
+  if (!email) {
     return res
       .status(400)
-      .json({ errorMessage: "Please provide your username." });
+      .json({ errorMessage: "Please provide your email." });
   }
 
   // Here we use the same logic as above
@@ -88,19 +90,24 @@ router.post("/login", (req, res, next) => {
   }
 
   // Search the database for a user with the username submitted in the form
-  User.findOne({ username })
+  User.findOne({ email })
     .then((user) => {
       // If the user isn't found, send the message that user provided wrong credentials
       if (!user) {
         return res.status(400).json({ errorMessage: "Wrong credentials." });
       }
 
+      
+
       const passwordCorrect = bcrypt.compareSync(password, user.password);
 
+    console.log(passwordCorrect);
+
       if(passwordCorrect) {
-        const {_id, email} = foundUser;
+        const {_id, email} = user;
 
         const payload = {_id, email};
+
 
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
           algorithm: "HS256",
