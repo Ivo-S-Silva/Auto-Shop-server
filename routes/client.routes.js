@@ -6,6 +6,7 @@ const Service = require("../models/Service.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
 const User = require("../models/User.model");
+const isClientCreator = require("../middleware/isClientCreator.middleware");
 
 //Create new client
 router.post('/clients', isAuthenticated, (req, res, next) => {
@@ -60,7 +61,7 @@ router.get('/clients', isAuthenticated, (req,res,next) => {
 })
 
 //Get details of specific client
-router.get('/clients/:clientId', isAuthenticated, (req, res, next) => {
+router.get('/clients/:clientId', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
@@ -81,7 +82,7 @@ router.get('/clients/:clientId', isAuthenticated, (req, res, next) => {
 })
 
 //Update client data
-router.put('/clients/:clientId', isAuthenticated, (req,res,next) => {
+router.put('/clients/:clientId', isAuthenticated, isClientCreator,  (req,res,next) => {
     const {clientId} = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
@@ -106,7 +107,7 @@ router.put('/clients/:clientId', isAuthenticated, (req,res,next) => {
 })
 
 // Delete client data
-router.delete('/clients/:clientId', isAuthenticated, (req,res,next) => {
+router.delete('/clients/:clientId', isAuthenticated, isClientCreator, (req,res,next) => {
     const {clientId} = req.params;
     const currentUserId = req.payload._id
 
