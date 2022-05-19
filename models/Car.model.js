@@ -13,16 +13,11 @@ const carSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-      },services: [
+      },
+      services: [
         {
-          serviceDate: {
-            type: Date,
-            required: true,
-          },
-          serviceDetails: {
-            type: String,
-            required: true,
-          },
+          serviceDate: Date,
+          serviceDetails: String,
           serviceStatus: {
             type: String,
             enum: ["waiting", "onShop", "readyToDeliver", "delivered"],

@@ -2,17 +2,17 @@ const router = require("express").Router();
 
 const { default: mongoose } = require("mongoose");
 const Client = require("../models/Client.model");
-const Service = require("../models/Car.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
-const User = require("../models/User.model");
 const isClientCreator = require("../middleware/isClientCreator.middleware");
+const Car = require("../models/Car.model");
 
 //Get list of all cars for a specific Client
 router.get('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
 
     Client.findById(clientId)
+        .populate("cars")
         .then(clientFound => {
             res.json(clientFound.cars);
         })
@@ -35,27 +35,32 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
         licensePlate: req.body.licensePlate
     }
 
-    Client.findByIdAndUpdate(clientId, {$push: {cars: newCar}}, {new: true})
-        .then(response => res.status(201).json(response.cars))
+    Car.create(newCar)
+        .then(createdCar => {
+            return Client.findByIdAndUpdate(clientId, {$push: {cars: createdCar._id}}, {new: true})
+        })
+        // .populate("cars")
+        .then(() => res.status(201).json("Car created Successfully"))
         .catch(error => {
             console.log("Error creating new car for this client", error)
             res.status(500).json({
                 message: "Error creating new car for this client",
                 error: error
             });
-        });
+        })
 });
 
-//Edit car details for a specific client
+//Edit car details
 router.put('/clients/:clientId/:carId', (req, res, next) => {
     const {clientId, carId} = req.params;
 
-    Client.findOneAndUpdate({_id: clientId, "cars._id": carId}, {$set: {"cars.$.brand": req.body.brand,"cars.$.model": req.body.model,"cars.$.licensePlate": req.body.licensePlate}})
-        .then(updatedClient => res.json(updatedClient))
+
+    Car.findOneAndUpdate(carId, req.body, {new: true})
+        .then(updatedCar => res.json(updatedCar))
         .catch(error => {
-            console.log("Error updating car details for this user.", error);
+            console.log("Error updating car details for this car.", error);
             res.status(500).json({
-                message: "Error updating car details for this user.",
+                message: "Error updating car details for this car.",
                 error: error
             });
         })
@@ -65,7 +70,18 @@ router.put('/clients/:clientId/:carId', (req, res, next) => {
 router.delete('/clients/:clientId/:carId', (req, res, next) => {
     const {clientId, carId} = req.params;
 
-    Client.findOneAndDelete()
+    Car.findOneAndDelete(carId)
+        .then(() => {
+            return Client.findByIdAndUpdate(clientId, {$pull: {cars: carId}})
+        })
+        .then(() => res.json("Car removed successfully"))
+        .catch(error => {
+            console.log("Error removing car from the database.", error);
+            res.status(500).json({
+                message: "Error removing car from the database.",
+                error: error
+            });
+        })
 })
 
 
