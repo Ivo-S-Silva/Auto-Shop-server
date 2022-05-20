@@ -35,7 +35,7 @@ router.post('/clients', isAuthenticated, (req, res, next) => {
 router.get('/clients', isAuthenticated, (req,res,next) => {
     const currentUser = req.payload._id
     
-    Client.find()
+    Client.find({creator: {$eq: currentUser}})
         .then(response => res.json(response))
         .catch(error => {
             console.log("Error getting list of clients", error);

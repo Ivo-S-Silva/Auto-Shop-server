@@ -18,7 +18,7 @@ router.get("/loggedin", (req, res) => {
 });
 
 router.post("/signup", (req, res) => {
-  const { email, username, password } = req.body;
+  const { email, password } = req.body;
 
   if (!email) {
     return res
@@ -53,7 +53,6 @@ router.post("/signup", (req, res) => {
         });
       })
       .then((user) => {
-        // Bind the user to the session object
         res.status(201).json(user);
       })
       .catch((error) => {
