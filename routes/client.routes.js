@@ -36,6 +36,7 @@ router.get('/clients', isAuthenticated, (req,res,next) => {
     const currentUser = req.payload._id
     
     Client.find({creator: {$eq: currentUser}})
+        .populate("cars")
         .then(response => res.json(response))
         .catch(error => {
             console.log("Error getting list of clients", error);
