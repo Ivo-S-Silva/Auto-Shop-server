@@ -1,6 +1,4 @@
 const router = require("express").Router();
-
-const { default: mongoose } = require("mongoose");
 const Client = require("../models/Client.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
@@ -25,6 +23,21 @@ router.get('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, re
         })
 })
 
+//Get details of a specific car
+router.get('/clients/:clientId/:carId', isAuthenticated, isClientCreator, (req, res, next) => {
+    const {carId} = req.params;
+
+    Car.findById(carId)
+        .then(carFound => res.status(201).json(carFound))
+        .catch(error => {
+            console.log("Error getting the details of this car", error)
+            res.status(500).json({
+                message: "Error getting the details of this car",
+                error: error
+            });
+        })
+})
+
 //Add new car to specific client
 router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
@@ -39,7 +52,6 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
         .then(createdCar => {
             return Client.findByIdAndUpdate(clientId, {$push: {cars: createdCar._id}}, {new: true})
         })
-        // .populate("cars")
         .then(() => res.status(201).json("Car created Successfully"))
         .catch(error => {
             console.log("Error creating new car for this client", error)
@@ -83,8 +95,5 @@ router.delete('/clients/:clientId/:carId', (req, res, next) => {
             });
         })
 })
-
-
-
 
 module.exports = router;
