@@ -2,7 +2,7 @@ const router = require("express").Router();
 const Client = require("../models/Client.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
-const isClientCreator = require("../middleware/isClientCreator.middleware");
+const isCarCreator = require("../middleware/isCarCreator.middleware");
 const Car = require("../models/Car.model");
 
 
@@ -21,30 +21,14 @@ router.get('/cars', isAuthenticated, (req, res, next) => {
         })
 })
 
-//Get list of all cars for a specific Client
-router.get('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
-    const {clientId} = req.params;
-
-    Client.findById(clientId)
-        .populate("cars")
-        .then(clientFound => {
-            res.json(clientFound.cars);
-        })
-        .catch(error => {
-            console.log("Error getting car list for this client", error);
-            res.status(500).json({
-                message: "Error getting car list for this client",
-                error: error
-            });
-        })
-})
-
 //Get details of a specific car
-router.get('/clients/:clientId/:carId', isAuthenticated, isClientCreator, (req, res, next) => {
+router.get('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
     Car.findById(carId)
-        .then(carFound => res.status(201).json(carFound))
+        .then(carFound => {
+            console.log(carId)
+            res.status(201).json(carFound)})
         .catch(error => {
             console.log("Error getting the details of this car", error)
             res.status(500).json({
@@ -55,7 +39,7 @@ router.get('/clients/:clientId/:carId', isAuthenticated, isClientCreator, (req, 
 })
 
 //Add new car to specific client
-router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
+router.post('/clients/:clientId/cars', isAuthenticated, isCarCreator, (req, res, next) => {
     const {clientId} = req.params;
 
     const newCar = {
@@ -80,11 +64,10 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
 });
 
 //Edit car details
-router.put('/clients/:clientId/:carId', (req, res, next) => {
-    const {clientId, carId} = req.params;
+router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
+    const {carId} = req.params;
 
-
-    Car.findOneAndUpdate(carId, req.body, {new: true})
+    Car.findOneAndUpdate({_id: carId}, req.body, {new: true})
         .then(updatedCar => res.json(updatedCar))
         .catch(error => {
             console.log("Error updating car details for this car.", error);
@@ -96,12 +79,12 @@ router.put('/clients/:clientId/:carId', (req, res, next) => {
 })
 
 //Delete car from specific client
-router.delete('/clients/:clientId/:carId', (req, res, next) => {
-    const {clientId, carId} = req.params;
+router.delete('/cars/:carId', isCarCreator, (req, res, next) => {
+    const {carId} = req.params;
 
     Car.findOneAndDelete(carId)
-        .then(() => {
-            return Client.findByIdAndUpdate(clientId, {$pull: {cars: carId}})
+        .then(deletedCar => {
+            return Client.findByIdAndUpdate(deletedCar.owner, {$pull: {cars: carId}})
         })
         .then(() => res.json("Car removed successfully"))
         .catch(error => {
