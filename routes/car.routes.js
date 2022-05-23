@@ -5,6 +5,22 @@ const {isAuthenticated} = require("../middleware/jwt.middleware");
 const isClientCreator = require("../middleware/isClientCreator.middleware");
 const Car = require("../models/Car.model");
 
+
+//Get list of all cars for all clients
+router.get('/cars', isAuthenticated, (req, res, next) => {
+    const currentUser = req.payload._id;
+
+    Car.find({creator: {$eq: currentUser}})
+        .then(response => res.json(response))
+        .catch(error => {
+            console.log('Error getting list of cars', error);
+            res.status(500).json({
+                message: 'Error getting list of clients',
+                error: error
+            })
+        })
+})
+
 //Get list of all cars for a specific Client
 router.get('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
@@ -43,6 +59,7 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
     const {clientId} = req.params;
 
     const newCar = {
+        owner: clientId,
         brand: req.body.brand,
         model: req.body.model,
         licensePlate: req.body.licensePlate
