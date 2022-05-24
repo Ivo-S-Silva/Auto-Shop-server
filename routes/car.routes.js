@@ -23,7 +23,7 @@ router.get('/cars', isAuthenticated, (req, res, next) => {
 })
 
 //Get details of a specific car
-router.get('/cars/:carId', isAuthenticated, (req, res, next) => {
+router.get('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
     Car.findById(carId)
@@ -40,7 +40,7 @@ router.get('/cars/:carId', isAuthenticated, (req, res, next) => {
 })
 
 //Add new car to specific client
-router.post('/clients/:clientId/cars', isAuthenticated, (req, res, next) => {
+router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
     const userId = req.payload._id;
     const initialServices = [];
@@ -69,7 +69,7 @@ router.post('/clients/:clientId/cars', isAuthenticated, (req, res, next) => {
 });
 
 //Edit car details
-router.put('/cars/:carId', isAuthenticated, (req, res, next) => {
+router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
     const newCarDetails = {
@@ -90,7 +90,7 @@ router.put('/cars/:carId', isAuthenticated, (req, res, next) => {
 })
 
 //Delete car from specific client
-router.delete('/cars/:carId', (req, res, next) => {
+router.delete('/cars/:carId', isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
     Car.findOneAndDelete(carId)
