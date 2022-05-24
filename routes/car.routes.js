@@ -3,6 +3,7 @@ const Client = require("../models/Client.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
 const isCarCreator = require("../middleware/isCarCreator.middleware");
+const isClientCreator = require("../middleware/isClientCreator.middleware");
 const Car = require("../models/Car.model");
 
 
@@ -39,14 +40,18 @@ router.get('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
 })
 
 //Add new car to specific client
-router.post('/clients/:clientId/cars', isAuthenticated, isCarCreator, (req, res, next) => {
+router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, res, next) => {
     const {clientId} = req.params;
+    const userId = req.payload._id;
+    const initialServices = [];
 
     const newCar = {
+        creator: userId,
         owner: clientId,
         brand: req.body.brand,
         model: req.body.model,
-        licensePlate: req.body.licensePlate
+        licensePlate: req.body.licensePlate,
+        services: initialServices
     }
 
     Car.create(newCar)
@@ -67,7 +72,13 @@ router.post('/clients/:clientId/cars', isAuthenticated, isCarCreator, (req, res,
 router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
-    Car.findOneAndUpdate({_id: carId}, req.body, {new: true})
+    const newCarDetails = {
+        brand: req.body.brand,
+        model: req.body.model,
+        licensePlate: req.body.licensePlate
+    }
+
+    Car.findByIdAndUpdate(carId, newCarDetails, {new: true})
         .then(updatedCar => res.json(updatedCar))
         .catch(error => {
             console.log("Error updating car details for this car.", error);

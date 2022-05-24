@@ -7,7 +7,7 @@ const Car = require("../models/Car.model");
 
 
 //Create new service
-router.post('/clients/:clientId/:carId/services', isAuthenticated, isClientCreator, (req, res, next) => {
+router.post('/clients/:clientId/:carId/services', isAuthenticated, (req, res, next) => {
     const {carId} = req.params;
 
     const newService = {
