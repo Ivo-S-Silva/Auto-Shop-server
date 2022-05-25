@@ -2,12 +2,12 @@ const router = require("express").Router();
 const Client = require("../models/Client.model");
 
 const {isAuthenticated} = require("../middleware/jwt.middleware");
-const isClientCreator = require("../middleware/isClientCreator.middleware");
 const Car = require("../models/Car.model");
+const isCarCreator = require("../middleware/isCarCreator.middleware");
 
 
 //Create new service
-router.post('/clients/:clientId/:carId/services', isAuthenticated, (req, res, next) => {
+router.post('/cars/:carId/services', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
     const newService = {
@@ -27,7 +27,7 @@ router.post('/clients/:clientId/:carId/services', isAuthenticated, (req, res, ne
 })
 
 //Update service
-router.put('/clients/:clientId/:carId/:serviceId', isAuthenticated, isClientCreator, (req, res, next) => {
+router.put('/cars/:carId/:serviceId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId, serviceId} = req.params;
     const {serviceDate, serviceDetails, serviceStatus} = req.body;
 
@@ -47,7 +47,7 @@ router.put('/clients/:clientId/:carId/:serviceId', isAuthenticated, isClientCrea
 })
 
 //Delete service
-router.delete('/clients/:clientId/:carId/:serviceId', isAuthenticated, isClientCreator, (req, res, next) => {
+router.delete('/cars/:carId/:serviceId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId, serviceId} = req.params;
 
     Car.findOneAndUpdate({_id: carId}, {$pull: {services: {_id: serviceId}}}, {new: true})
