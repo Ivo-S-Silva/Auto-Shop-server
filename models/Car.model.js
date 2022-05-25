@@ -22,6 +22,9 @@ const carSchema = new Schema({
     required: true,
     unique: true,
   },
+  imageurl: {
+    type: String,
+  },
   services: [
     {
       serviceDate: Date,
