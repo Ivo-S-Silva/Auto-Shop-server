@@ -54,17 +54,31 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
         services: initialServices
     }
 
-    Car.create(newCar)
+    Car.findOne({licensePlate: req.body.licensePlate})
+        .then(foundCar => {
+            if (foundCar) {
+                const customError = new Error();
+                customError.name = "carExists";
+                customError.message = "A car with that license plate already exists.";
+                throw customError; //we throw an error to break the promise chain (ie. to avoid going to the next .then() )
+            }
+
+            return Car.create(newCar);
+        })
         .then(createdCar => {
             return Client.findByIdAndUpdate(clientId, {$push: {cars: createdCar._id}}, {new: true})
         })
         .then(() => res.status(201).json("Car created Successfully"))
         .catch(error => {
             console.log("Error creating new car for this client", error)
+            if(error.name === "carExists"){
+                res.status(400).json({message: error.message})
+            } else {
             res.status(500).json({
                 message: "Error creating new car for this client",
                 error: error
             });
+        }
         })
 });
 
@@ -77,15 +91,28 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
         model: req.body.model,
         licensePlate: req.body.licensePlate
     }
+    Car.findOne({licensePlate: req.body.licensePlate})
+        .then(foundClient => {
+            if (foundClient) {
+                const customError = new Error();
+                customError.name = "carExists";
+                customError.message = "A car with that license plate already exists.";
+                throw customError; 
+            }
 
-    Car.findByIdAndUpdate(carId, newCarDetails, {new: true})
+            return Car.findByIdAndUpdate(carId, newCarDetails, {new: true})
+        })
         .then(updatedCar => res.json(updatedCar))
         .catch(error => {
             console.log("Error updating car details for this car.", error);
+            if(error.name === "carExists"){
+                res.status(400).json({message: error.message})
+            } else {
             res.status(500).json({
                 message: "Error updating car details for this car.",
                 error: error
             });
+        }
         })
 })
 

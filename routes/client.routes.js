@@ -18,16 +18,30 @@ router.post('/clients', isAuthenticated, (req, res, next) => {
         fiscalNumber
     }
 
-    Client.create(newClient)
+    Client.findOne({fiscalNumber})
+        .then(foundClient => {
+            if (foundClient) {
+                const customError = new Error();
+                customError.name = "clientExists";
+                customError.message = "A client with that fiscal number already exists.";
+                throw customError; //we throw an error to break the promise chain (ie. to avoid going to the next .then() )
+            }
+
+            return Client.create(newClient);
+        })
         .then(response => {
             return res.status(201).json(response);
         })
         .catch(error => {
             console.log("Error creating new client.", error);
+            if(error.name === "clientExists"){
+                res.status(400).json({message: error.message})
+            } else {
             res.status(500).json({
                 message: "Error creating a new client.",
                 error: error
             })
+        }
         })
 })
 
@@ -82,14 +96,28 @@ router.put('/clients/:clientId', isAuthenticated, isClientCreator,  (req,res,nex
         fiscalNumber: req.body.fiscalNumber,
     }
 
-    Client.findByIdAndUpdate(clientId, newDetails, {new: true})
-    .then(updatedClient => res.json(updatedClient))
-    .catch(error => {
+    Client.findOne({fiscalNumber})
+        .then(foundClient => {
+            if (foundClient) {
+                const customError = new Error();
+                customError.name = "clientExists";
+                customError.message = "A client with that fiscal number already exists.";
+                throw customError; //we throw an error to break the promise chain (ie. to avoid going to the next .then() )
+            }
+
+            return Client.findByIdAndUpdate(clientId, newDetails, {new: true})
+        })
+        .then(updatedClient => res.json(updatedClient))
+        .catch(error => {
         console.log("Error updating client details", error);
+        if(error.name === "clientExists"){
+            res.status(400).json({message: error.message})
+        } else {
         res.status(500).json({
             message: "Error updating client details",
             error: error
         });
+    }
     })
 })
 
