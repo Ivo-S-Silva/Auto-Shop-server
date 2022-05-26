@@ -129,7 +129,7 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
 router.delete('/cars/:carId', isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
-    Car.findOneAndDelete(carId)
+    Car.findOneAndDelete({_id: carId})
         .then(deletedCar => {
             return Client.findByIdAndUpdate(deletedCar.owner, {$pull: {cars: carId}})
         })
