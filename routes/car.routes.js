@@ -92,7 +92,8 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const newCarDetails = {
         brand: req.body.brand,
         model: req.body.model,
-        licensePlate: req.body.licensePlate
+        licensePlate: req.body.licensePlate,
+        imageUrl: req.body.imageUrl,
     }
 
     Car.findOne({licensePlate: req.body.licensePlate})
