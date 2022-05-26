@@ -31,7 +31,7 @@ const carSchema = new Schema({
       serviceDetails: String,
       serviceStatus: {
         type: String,
-        enum: ["waiting", "onShop", "readyToDeliver", "delivered"],
+        enum: ["Waiting", "On Shop", "Ready To Deliver", "Delivered"],
         default: "waiting",
       },
     },

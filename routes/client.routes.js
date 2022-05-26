@@ -96,9 +96,9 @@ router.put('/clients/:clientId', isAuthenticated, isClientCreator,  (req,res,nex
         fiscalNumber: req.body.fiscalNumber,
     }
 
-    Client.findOne({fiscalNumber})
+    Client.findOne({fiscalNumber: req.body.fiscalNumber})
         .then(foundClient => {
-            if (foundClient) {
+            if (foundClient && foundClient._id != clientId ) {
                 const customError = new Error();
                 customError.name = "clientExists";
                 customError.message = "A client with that fiscal number already exists.";
