@@ -2,8 +2,7 @@ const Car = require('../models/Car.model');
 
 module.exports = (req, res, next) => {
     const carId = req.params.carId;
-    const userId = req.payload._id;
-
+    const userId = req.headers.currentuserid;
 
     Car.findById(carId)
         .then(carFound => {

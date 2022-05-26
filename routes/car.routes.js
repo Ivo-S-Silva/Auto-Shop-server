@@ -24,11 +24,12 @@ router.get('/cars', isAuthenticated, (req, res, next) => {
 
 //Get details of a specific car
 router.get('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
-    const {carId} = req.params;
+    const {carId} = req.params.carId;
 
-    Car.findById(carId)
+
+    Car.findById(req.params.carId)
         .then(carFound => {
-            console.log(carId)
+            console.log(carFound)
             res.status(201).json(carFound)})
         .catch(error => {
             console.log("Error getting the details of this car", error)
@@ -45,7 +46,6 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
     const userId = req.payload._id;
     const initialServices = [];
 
-    console.log(req.body)
 
     const newCar = {
         creator: userId,
@@ -88,13 +88,16 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
 //Edit car details
 router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
+    let newBrand, newModel, newLicensePlate;
 
-    console.log(req.body);
+    if (req.body.brand) newBrand = req.body.brand;
+    if (req.body.model) newModel = req.body.model;
+    if (req.body.licensePlate) newLicensePlate = req.body.licensePlate;
 
     const newCarDetails = {
-        brand: req.body.brand,
-        model: req.body.model,
-        licensePlate: req.body.licensePlate,
+        brand: newBrand,
+        model: newModel,
+        licensePlate: newLicensePlate,
         imageUrl: req.body.imageUrl,
     }
 
