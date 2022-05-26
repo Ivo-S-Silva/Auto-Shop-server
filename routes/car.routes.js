@@ -102,13 +102,13 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     }
 
     Car.findOne({licensePlate: req.body.licensePlate})
-        .then(foundClient => {
-            if (foundClient._id != carId) {
-                const customError = new Error();
-                customError.name = "carExists";
-                customError.message = "A car with that license plate already exists.";
-                throw customError; 
-            }
+        .then(foundCar => {
+                if (foundCar && foundCar._id != carId) {
+                    const customError = new Error();
+                    customError.name = "carExists";
+                    customError.message = "A car with that license plate already exists.";
+                    throw customError; 
+                }
             return Car.findByIdAndUpdate(carId, newCarDetails, {new: true})
         })
         .then(updatedCar => res.json(updatedCar))
