@@ -89,6 +89,8 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
 router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
     const {carId} = req.params;
 
+    console.log(req.body);
+
     const newCarDetails = {
         brand: req.body.brand,
         model: req.body.model,
@@ -104,7 +106,6 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
                 customError.message = "A car with that license plate already exists.";
                 throw customError; 
             }
-
             return Car.findByIdAndUpdate(carId, newCarDetails, {new: true})
         })
         .then(updatedCar => res.json(updatedCar))
