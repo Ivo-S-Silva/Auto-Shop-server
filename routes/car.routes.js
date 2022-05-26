@@ -45,12 +45,15 @@ router.post('/clients/:clientId/cars', isAuthenticated, isClientCreator, (req, r
     const userId = req.payload._id;
     const initialServices = [];
 
+    console.log(req.body)
+
     const newCar = {
         creator: userId,
         owner: clientId,
         brand: req.body.brand,
         model: req.body.model,
         licensePlate: req.body.licensePlate,
+        imageUrl: req.body.imageUrl,
         services: initialServices
     }
 
@@ -91,9 +94,10 @@ router.put('/cars/:carId', isAuthenticated, isCarCreator, (req, res, next) => {
         model: req.body.model,
         licensePlate: req.body.licensePlate
     }
+
     Car.findOne({licensePlate: req.body.licensePlate})
         .then(foundClient => {
-            if (foundClient) {
+            if (foundClient._id != carId) {
                 const customError = new Error();
                 customError.name = "carExists";
                 customError.message = "A car with that license plate already exists.";
