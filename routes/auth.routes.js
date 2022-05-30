@@ -98,8 +98,6 @@ router.post("/login", (req, res, next) => {
 
       const passwordCorrect = bcrypt.compareSync(password, user.password);
 
-      console.log(passwordCorrect);
-
       if (passwordCorrect) {
         const { _id, email } = user;
 
