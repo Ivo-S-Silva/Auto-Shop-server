@@ -16,7 +16,7 @@
 ## Working on the project
 
 * Move into the project directory and open the project with your code editor of choice
-* Run the development task: `npm start`
+* Run the development task: `npm run dev`
     * Starts a server running at http://localhost:5005
     * Automatically restarts when any of your files change
 * Create the environmental variables in a .env file:
